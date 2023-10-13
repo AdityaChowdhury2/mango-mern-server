@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import { MongoClient, ObjectId, ServerApiVersion } from 'mongodb';
 
 const port = process.env.PORT || 5000;
 
@@ -32,7 +32,43 @@ const run = async () => {
         const mangoCollection = database.collection("mango");
         console.log("Pinged your deployment. You successfully connected to MongoDb.");
 
+        app.get('/mango', async (req, res) => {
+            const cursor = mangoCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
 
+        })
+        app.get('/mango/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const result = await mangoCollection.findOne(filter)
+            res.send(result)
+        })
+
+        app.patch('/mango/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedMango = req.body;
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const newMango = {
+                $set: {
+                    name: updatedMango.name,
+                    price: updatedMango.price,
+                    imageURL: updatedMango.imageURL
+                }
+            }
+
+            const result = await mangoCollection.updateOne(filter, newMango, options)
+            res.send(result)
+
+        });
+
+        app.delete('/mango/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await mangoCollection.deleteOne(query);
+            res.send(result);
+        })
         app.post('/', async (req, res) => {
             const newMango = req.body;
             // console.log(newMango);
