@@ -28,8 +28,19 @@ const run = async () => {
     try {
         //connect the client to the server 
         await client.connect();
-
+        const database = client.db("mangoDB");
+        const mangoCollection = database.collection("mango");
         console.log("Pinged your deployment. You successfully connected to MongoDb.");
+
+
+        app.post('/', async (req, res) => {
+            const newMango = req.body;
+            // console.log(newMango);
+            const result = await mangoCollection.insertOne(newMango);
+            res.send(result)
+
+        })
+
     }
     catch (err) {
         console.log(err)
@@ -37,9 +48,7 @@ const run = async () => {
 }
 run()
 
-app.get('/', (req, res) => {
-    res.send("Hello World!");
-})
+
 
 app.listen(port, () => {
     console.log(`listening on port ${port}`);
